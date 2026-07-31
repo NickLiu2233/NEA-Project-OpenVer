@@ -11,11 +11,13 @@ Thank you for helping preserve and implement the DAO3 runtime evidence base.
 
 ## Contribution Workflow
 
-1. Start with one task ID and one declared write scope. The [community task queue](docs/community-task-queue.md) lists the current order of work.
-2. Read the package README, nearby tests, and the evidence model before changing behavior.
-3. Describe the smallest implementation that can satisfy the acceptance criteria. Do not combine a runtime feature with cleanup or a broad refactor.
-4. Add focused conformance coverage for a runtime behavior change. Update a deterministic report only through its generator and approved evidence input.
-5. In the pull request, list changed paths, exact validation commands, evidence classification, and unresolved limits.
+1. Start or select one GitHub issue. Use the runtime task form for implementation work and the evidence-gap form when proof is missing.
+2. Claim the issue in a comment before editing. Include the planned branch name and confirm that the allowed scope excludes private material.
+3. Read the package README, nearby tests, and the evidence model before changing behavior.
+4. Describe the smallest implementation that can satisfy the acceptance criteria. Do not combine a runtime feature with cleanup or a broad refactor.
+5. Add focused conformance coverage for a runtime behavior change. Update a deterministic report only through its generator and approved evidence input.
+6. Open a pull request using the repository template and link the issue with `Closes #<issue-number>`.
+7. Wait for GitHub Actions and maintainer review before merging. CI is an automated regression gate; a reviewer still verifies evidence claims and the public/private boundary.
 
 ## Pull Request Checklist
 

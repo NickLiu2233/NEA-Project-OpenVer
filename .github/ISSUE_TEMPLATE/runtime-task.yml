@@ -1,0 +1,69 @@
+name: Runtime task
+description: Propose one bounded compatibility, importer, integration, or documentation task.
+title: "[Task] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use one observable outcome and one declared write scope. Do not include private maps, raw scripts, captures, credentials, browser state, payload values, or token-bearing URLs.
+  - type: input
+    id: task_id
+    attributes:
+      label: Task ID
+      description: Use an existing ID such as RT-001, or propose a new stable ID.
+      placeholder: RT-001
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: State one observable result.
+      placeholder: Prove one client-to-server remote event through the local runtime path.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Allowed and forbidden scope
+      description: Name the directories or files that may change and the boundaries that must not change.
+      placeholder: |
+        Allowed: runtime-compat/conformance/, runtime-compat/test/
+        Forbidden: evidence inputs, Player rewrite, generated reports by hand
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence_class
+    attributes:
+      label: Primary evidence class
+      options:
+        - Historical declaration or documentation
+        - Preserved client or server bundle
+        - Transport capture metadata
+        - Local runtime implementation
+        - Sanitized real-script usage summary
+        - Evidence is missing or non-publishable
+    validations:
+      required: true
+  - type: textarea
+    id: known_unknowns
+    attributes:
+      label: Known evidence and unknowns
+      description: State the supporting fact and the behavior that must remain partial, blocked, or deferred.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Include focused tests, visible demo proof, or deterministic report output.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Proposed validation command
+      description: Use the narrowest relevant command first.
+      placeholder: npm --prefix runtime-compat test -- --test-name-pattern="RemoteChannel"
+    validations:
+      required: true
