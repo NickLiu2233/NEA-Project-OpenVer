@@ -9,6 +9,24 @@ Thank you for helping preserve and implement the DAO3 runtime evidence base.
 3. Locate direct local evidence: documentation, declarations, historical bundles, recorded transport, preserved runtime code, or real script usage.
 4. Record a compatibility gap instead of guessing when the evidence does not establish behavior.
 
+## Contribution Workflow
+
+1. Start with one task ID and one declared write scope. The [community task queue](docs/community-task-queue.md) lists the current order of work.
+2. Read the package README, nearby tests, and the evidence model before changing behavior.
+3. Describe the smallest implementation that can satisfy the acceptance criteria. Do not combine a runtime feature with cleanup or a broad refactor.
+4. Add focused conformance coverage for a runtime behavior change. Update a deterministic report only through its generator and approved evidence input.
+5. In the pull request, list changed paths, exact validation commands, evidence classification, and unresolved limits.
+
+## Pull Request Checklist
+
+- [ ] The change has one observable acceptance contract.
+- [ ] Client, server, transport, and Player responsibilities remain separated.
+- [ ] Inputs, IO boundaries, and failures are validated or explicitly deferred.
+- [ ] New behavior has focused tests or a documented validation blocker.
+- [ ] Generated output was regenerated rather than hand-edited.
+- [ ] The diff contains no private capture, credentials, browser state, private map source, or token-bearing URL.
+- [ ] Compatibility language is evidence-based and does not imply unsupported parity.
+
 ## Change Boundaries
 
 - Keep client Script Runtime, server Script Runtime, MuDB transport, and authoritative runtime changes separate and explicit.
@@ -27,6 +45,8 @@ Thank you for helping preserve and implement the DAO3 runtime evidence base.
 
 State the source category and provenance in the changed documentation or generator metadata. A declaration alone may establish a surface name and signature, but it does not establish unobserved engine behavior.
 
+Use the categories defined in [the evidence model](docs/evidence-model.md). If a public fixture cannot safely identify its source class, redaction status, public/private status, and reproducibility limits, do not add it.
+
 ## Validation
 
-Run the narrowest relevant command first. The standard project checks are documented in the root README. Do not ?fix? unrelated failures as part of an evidence or compatibility change.
+Run the narrowest relevant command first. The standard project checks are documented in the root README. Do not fix unrelated failures as part of an evidence or compatibility change.
