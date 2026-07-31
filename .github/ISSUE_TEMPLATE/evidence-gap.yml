@@ -1,0 +1,49 @@
+name: Evidence gap
+description: Record a compatibility question that cannot yet be implemented safely.
+title: "[Evidence gap] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Record what is unknown without uploading private captures, raw script source, account material, browser state, token-bearing URLs, or unreviewed assets.
+  - type: input
+    id: surface
+    attributes:
+      label: API or runtime surface
+      description: Name the smallest affected surface.
+      placeholder: server-to-client directed remote delivery
+    validations:
+      required: true
+  - type: textarea
+    id: observed_facts
+    attributes:
+      label: Publishable facts
+      description: Describe only facts that can be reviewed publicly.
+    validations:
+      required: true
+  - type: textarea
+    id: missing_proof
+    attributes:
+      label: Missing proof
+      description: State the specific field, timing rule, side effect, or error behavior that is unknown.
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Recommended classification
+      options:
+        - evidence-deferred
+        - evidence-blocked
+        - partial
+        - declared-only
+        - recovered-only
+    validations:
+      required: true
+  - type: textarea
+    id: safe_next_step
+    attributes:
+      label: Safe next step
+      description: Propose a public evidence search, a neutral fixture, or a documentation update. Do not propose guessed implementation.
+    validations:
+      required: true

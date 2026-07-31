@@ -122,6 +122,18 @@ Please do not post browser profiles, cookies, credentials, token-bearing URLs, p
 
 For substantial work, open an issue or draft pull request that names the task ID, allowed scope, evidence class, validation plan, and one reviewer-needed question. This keeps community effort aligned with the real-map client/server runtime loop instead of dispersing it across speculative API completion.
 
+## Community Delivery Workflow
+
+Use GitHub as the source of truth for planned work:
+
+1. Create a task issue with the [runtime task form](.github/ISSUE_TEMPLATE/runtime-task.yml), or record missing proof with the [evidence-gap form](.github/ISSUE_TEMPLATE/evidence-gap.yml).
+2. Claim one unclaimed issue in a comment before beginning implementation. State the branch name and confirm the allowed scope.
+3. Implement only the accepted scope and open a pull request that uses the repository template and links the issue with `Closes #<issue-number>`.
+4. GitHub Actions runs the automated validation gate for every pull request. Treat a green CI run as regression evidence for the checked path, not as proof of undocumented historical behavior.
+5. A maintainer reviews evidence classification, privacy boundary, scope, and focused validation before merging.
+
+This sequence prevents duplicate work and gives every compatibility decision a reviewable record.
+
 ## License
 
 This repository is source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). Commercial use is not permitted under that license.
