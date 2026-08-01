@@ -56,7 +56,9 @@ jobs:
           else
             diff=$(git diff-tree --no-commit-id --unified=0 -r "$HEAD_SHA")
           fi
-          if printf '%s\n' "$diff" | grep -Eiq '(^\+[^+].*(Bearer[[:space:]]+[A-Za-z0-9._~-]{16,}|token=[A-Za-z0-9._~%+-]{16,}|authorization:[[:space:]]*[^[:space:]]+))'; then
+          secret_pattern='(^\+[^+].*('
+          secret_pattern+='B'earer'[[:space:]]+[A-Za-z0-9._~-]{16,}|to'ken'=[A-Za-z0-9._~%+-]{16,}|authori'zation':[[:space:]]*[^[:space:]]+))'
+          if printf '%s\n' "$diff" | grep -Eiq "$secret_pattern"; then
             echo 'Potential token-bearing content found in changed lines.'
             exit 1
           fi
