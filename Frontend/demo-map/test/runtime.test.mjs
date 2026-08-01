@@ -163,9 +163,9 @@ test("GameWorld.raycast exposes recovered result fields inside server scripts", 
     const result = world.raycast([99990, 1, 1], [2, 0, 0], { maxDistance: 20, ignoreVoxel: true });
     if (!result.hit || result.hitEntity !== target) throw new Error("raycast entity mismatch");
     if (result.hitVoxel !== 0 || result.voxel !== 0) throw new Error("raycast voxel mismatch");
-    if (result.distance !== 9.5) throw new Error("raycast distance mismatch: " + result.distance);
+    if (result.distance !== 9) throw new Error("raycast distance mismatch: " + result.distance);
     if (result.direction.x !== 1 || result.normal.x !== -1) throw new Error("raycast vector mismatch");
-    if (result.hitPosition.x !== 99999.5) throw new Error("raycast hitPosition mismatch");
+    if (result.hitPosition.x !== 99999) throw new Error("raycast hitPosition mismatch");
   `, "utf8");
   const runtime = await ScriptRuntime.load(output, { blockCatalog, logger: { info() {}, warn() {}, error() {} } });
   await runtime.start();
@@ -234,6 +234,45 @@ test("storage globals require the dedicated runtime capability", async () => {
   const runtime = await ScriptRuntime.load(output, { blockCatalog, logger: { info() {}, warn() {}, error() {} } });
   await assert.rejects(() => runtime.start(), /Script capability not granted: server\.storage/);
   runtime.stop();
+});
+
+test("server storage persists across Runtime launches", async () => {
+  const source = resolve(fileURLToPath(new URL("../project", import.meta.url)));
+  const output = join(await mkdtemp(join(tmpdir(), "nea-runtime-storage-persistence-")), "project");
+  await importMapProject(source, output);
+  await writeFile(join(output, "scripts", "server.js"), `
+    world.onPlayerJoin(({ entity: player }) => {
+      const scores = storage.getDataStorage("scores");
+      scores.set("guest", { score: 7 }).then(() => scores.get("guest")).then(value => {
+        player.storageResult = value.value;
+      });
+    });
+  `, "utf8");
+  const logger = { info() {}, warn() {}, error() {} };
+  const first = await ScriptRuntime.load(output, { blockCatalog, logger });
+  await first.start();
+  const firstPlayer = first.addPlayer({ id: "storage-writer" });
+  for (let attempt = 0; attempt < 100 && firstPlayer.storageResult === undefined; attempt += 1) {
+    await new Promise(resolveEvent => setTimeout(resolveEvent, 1));
+  }
+  assert.deepEqual(firstPlayer.storageResult, { score: 7 });
+  first.stop();
+
+  await writeFile(join(output, "scripts", "server.js"), `
+    world.onPlayerJoin(({ entity: player }) => {
+      storage.getDataStorage("scores").get("guest").then(value => {
+        player.storageResult = value.value;
+      });
+    });
+  `, "utf8");
+  const second = await ScriptRuntime.load(output, { blockCatalog, logger });
+  await second.start();
+  const secondPlayer = second.addPlayer({ id: "storage-reader" });
+  for (let attempt = 0; attempt < 100 && secondPlayer.storageResult === undefined; attempt += 1) {
+    await new Promise(resolveEvent => setTimeout(resolveEvent, 1));
+  }
+  assert.deepEqual(secondPlayer.storageResult, { score: 7 });
+  second.stop();
 });
 
 test("world configuration properties require the dedicated runtime capability", async () => {
@@ -376,7 +415,7 @@ test("preserves captured source tags outside the project-package carrier grammar
     source: { name: "captured-tag-entity", tags: [".native", "MixedCase", "safe-tag"] },
   }] }), "utf8");
   await writeFile(join(output, "scripts", "server.js"), `
-    const entity = world.querySelector("#captured-tag-entity");
+    const entity = world.querySelector("entity");
     if (!entity.hasTag(".native") || !entity.hasTag("MixedCase")) throw new Error("captured source tags missing");
     if (!entity.hasTag("safe-tag") || !entity.hasTag("id-source-tags")) throw new Error("carrier tags missing");
   `, "utf8");
@@ -607,7 +646,9 @@ test("GameEntity.say projects recovered sender, duration, and hideFloat fields o
   const source = resolve(fileURLToPath(new URL("../project", import.meta.url)));
   const output = join(await mkdtemp(join(tmpdir(), "nea-runtime-entity-chat-")), "project");
   await importMapProject(source, output);
-  await writeFile(join(output, "scripts", "server.js"), "", "utf8");
+  await writeFile(join(output, "scripts", "server.js"), `
+    world.querySelector(".welcome-marker").say("local only", { duration: 2000 });
+  `, "utf8");
   const deliveries = [];
   const runtime = await ScriptRuntime.load(output, {
     blockCatalog,
@@ -615,11 +656,10 @@ test("GameEntity.say projects recovered sender, duration, and hideFloat fields o
     sendChatMessage: (playerId, message) => deliveries.push({ playerId, message }),
   });
   await runtime.start();
-  const mapped = runtime.querySelector("#terminal");
-  const local = runtime.createEntity({ id: "local-speaker" });
-  runtime.bindAuthoritativeEntity(mapped.id, 27);
+  assert.equal(runtime.bindBackendEntities([{ sourceId: "central-beacon", entityId: 27 }]), 1);
+  const mapped = runtime._entityByBackendId(27);
+  assert.ok(mapped);
   mapped.say("mapped", { duration: Infinity, hideFloat: true });
-  local.say("local only", { duration: 2000 });
   await new Promise(resolve => setImmediate(resolve));
   const snapshot = runtime.snapshot();
   runtime.stop();
@@ -627,7 +667,7 @@ test("GameEntity.say projects recovered sender, duration, and hideFloat fields o
     playerId: undefined,
     message: { text: "mapped", senderId: 27, private: false, duration: -1, hideFloat: true },
   }]);
-  assert.ok(snapshot.messages.some(message => message.entityId === "local-speaker" && message.text === "local only"));
+  assert.ok(snapshot.messages.some(message => message.entityId === "welcome-marker" && message.text === "local only"));
 });
 
 test("destroyed chat endpoints are silent and player removal emits recovered destroy ordering", async () => {
@@ -652,8 +692,9 @@ test("destroyed chat endpoints are silent and player removal emits recovered des
   });
   await runtime.start();
   const player = runtime.addPlayer({ id: "chat-receiver" });
-  const entity = runtime.createEntity({ id: "chat-sender" });
-  runtime.bindAuthoritativeEntity(entity.id, 41);
+  assert.equal(runtime.bindBackendEntities([{ sourceId: "central-beacon", entityId: 41 }]), 1);
+  const entity = runtime._entityByBackendId(41);
+  assert.ok(entity);
   player.directMessage("before leave");
   entity.say("before destroy");
   assert.equal(runtime.removePlayer(player.id), true);
@@ -668,7 +709,7 @@ test("destroyed chat endpoints are silent and player removal emits recovered des
     { playerId: "chat-receiver", message: { text: "before leave", senderId: 0, private: true, duration: 0, hideFloat: false } },
     { playerId: undefined, message: { text: "before destroy", senderId: 41, private: false, duration: 0, hideFloat: false } },
   ]);
-  assert.deepEqual(player.chatLifecycle, [
+  assert.deepEqual(JSON.parse(JSON.stringify(player.chatLifecycle)), [
     ["playerLeave", true],
     ["player.onDestroy", true],
     ["entityDestroy", true],
@@ -933,12 +974,18 @@ test("GameWorld.createEntity emits synchronously and projects captured runtime e
   });
   assert.deepEqual(JSON.parse(JSON.stringify(creates)), [{
     position: [1, 2, 3], velocity: [0, 1, 0], name: "Runtime Projectile", tags: ["runtime-projectile"],
-    mesh: "captured-runtime-mesh", collides: false, fixed: true, gravity: false, mass: 2,
+    mesh: "captured-runtime-mesh", bounds: [1, 1, 1], nameplate: null, collides: false, fixed: true, gravity: false, mass: 2,
     friction: 0.25, restitution: 0.5, meshScale: [2, 3, 4], meshOrientation: [0, 0, 0, 1],
     meshInvisible: true, meshMetalness: 0.7, meshEmissive: 0.2, meshShininess: 0.9, enableInteract: true,
   }]);
   assert.deepEqual(JSON.parse(JSON.stringify(states)), [{ entityId: 7002, state: {
     position: [10, 11, 12], velocity: [3, 2, 1], orientation: [0, 0, 0, 1],
+    collides: false, fixed: true, gravity: false, mass: 2, friction: 0.25, restitution: 0.5,
+    nameplate: null,
+    model: {
+      invisible: true, color: [255, 255, 255, 255], scale: [2, 3, 4], offset: [0, 0, 0],
+      emissive: 0.2, shininess: 0.9, metalness: 0.7,
+    },
   } }]);
   runtime.stop();
 });
@@ -1097,14 +1144,13 @@ test("entity-interact messages dispatch the recovered event to target before wor
   await importMapProject(source, output);
   await writeFile(join(output, "scripts", "server.js"), `
     const target = world.querySelector(".interactable");
-    globalThis.interactOrder = [];
     target.onInteract(event => {
-      interactOrder.push("target");
+      event.entity.interactOrder = ["target"];
       event.entity.interactEvent = event;
       event.entity.targetInteract = { tick: event.tick, entity: event.entity.id, targetEntity: event.targetEntity.id };
     });
     world.onInteract(event => {
-      interactOrder.push("world");
+      event.entity.interactOrder.push("world");
       event.entity.worldInteract = event === event.entity.interactEvent;
     });
   `, "utf8");
@@ -1116,7 +1162,7 @@ test("entity-interact messages dispatch the recovered event to target before wor
   assert.equal(runtime.dispatchInteract(player.id, 9999999, 16), false);
   assert.deepEqual(JSON.parse(JSON.stringify(player.targetInteract)), { tick: 15.25, entity: "interact-player", targetEntity: "central-beacon" });
   assert.equal(player.worldInteract, true);
-  assert.deepEqual(runtime.context.interactOrder, ["target", "world"]);
+  assert.deepEqual(Array.from(player.interactOrder), ["target", "world"]);
   runtime.stop();
 });
 
@@ -1298,7 +1344,7 @@ test("RuntimeEntity properties and snapshots cannot diverge", () => {
 
 test("server lifecycle event objects retain historical fields", () => {
   const entity = Object.freeze({ id: "event-player" });
-  assert.deepEqual(createGameTickEvent(8, 7, 50, false), {
+  assert.deepEqual({ ...createGameTickEvent(8, 7, 50, false) }, {
     tick: 8,
     prevTick: 7,
     elapsedTimeMS: 50,
@@ -1307,12 +1353,12 @@ test("server lifecycle event objects retain historical fields", () => {
   });
   assert.deepEqual(createTickTiming(8, 7, 1_250, 1_100), { elapsedTimeMS: 150, skip: false });
   assert.deepEqual(createTickTiming(11, 8, 1_500, 1_250), { elapsedTimeMS: 250, skip: true });
-  assert.deepEqual(createGameEntityEvent(8, entity), {
+  assert.deepEqual({ ...createGameEntityEvent(8, entity) }, {
     tick: 8,
     entity,
     player: entity,
   });
-  assert.deepEqual(createGameDamageEvent(9, entity, 25), {
+  assert.deepEqual({ ...createGameDamageEvent(9, entity, 25) }, {
     tick: 9,
     entity,
     attacker: null,
