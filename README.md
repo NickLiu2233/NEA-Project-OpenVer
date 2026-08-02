@@ -14,6 +14,8 @@ NEA Project OpenVer is a source-available preservation and compatibility project
 | Understand the runtime boundaries | [Runtime architecture](docs/runtime-architecture.md) |
 | Work with the open version safely | [Open version policy](docs/open-version.md) |
 | Contribute code or evidence | [Contributing](CONTRIBUTING.md) |
+| Plan an evidence-backed contribution | [Development backlog](docs/development-backlog.md) |
+| Understand architecture governance | [Architecture governance](docs/architecture-governance.md) |
 | Work with AI agents efficiently | [AI project context](docs/ai/project-context.md) |
 | Read Chinese project guidance | [中文文档](docs/zh/README.md) |
 | Inspect ABI coverage and known limits | `Middleware/runtime-compat/generated/gap-report.md` |
