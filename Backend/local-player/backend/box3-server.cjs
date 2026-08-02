@@ -9011,6 +9011,13 @@ var IssuedSessionRegistry = class {
     }
     this.schedule(sessionId, session);
   }
+  /** Immediately invalidates a session that was superseded by a same-cookie connection. */
+  evict(sessionId) {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+    this.expire(sessionId, session);
+    return true;
+  }
   /** Starts the bounded reconnect period after MuDB closes a logical client. */
   markDisconnected(sessionId) {
     const session = this.sessions.get(sessionId);
@@ -16575,7 +16582,6 @@ function createMuDbWebTransport(options) {
   };
   return transport;
 }
-var neaSessionCookieBindings = /* @__PURE__ */ new Map();
 function neaPlayerIdFromRequest(request) {
   const header = request?.headers?.cookie;
   if (!header) return void 0;
@@ -16590,6 +16596,16 @@ function neaPlayerIdFromRequest(request) {
 function trackMuDbWebTransportSessions(transport, sessions) {
   const webSocketServer = transport._wsServer;
   if (!webSocketServer) throw new Error("MuDB WebSocket server is not ready");
+  const cookieBindings = /* @__PURE__ */ new Map();
+  const socketsBySession = /* @__PURE__ */ new Map();
+  const closeSessionSockets = (sessionId) => {
+    const sockets = socketsBySession.get(sessionId);
+    socketsBySession.delete(sessionId);
+    for (const socket of sockets ?? []) {
+      if (typeof socket.terminate === "function") socket.terminate();
+      else socket.close?.();
+    }
+  };
   webSocketServer.on("connection", (socket, request) => {
     const sessionId = sessionIdFromUpgrade(request.url);
     if (!sessionId || !sessions.attachSession(sessionId)) {
@@ -16598,17 +16614,24 @@ function trackMuDbWebTransportSessions(transport, sessions) {
       return;
     }
     const neaPlayerId = neaPlayerIdFromRequest(request);
+    const sessionSockets = socketsBySession.get(sessionId) ?? /* @__PURE__ */ new Set();
+    sessionSockets.add(socket);
+    socketsBySession.set(sessionId, sessionSockets);
     if (neaPlayerId) {
-      const previousSessionId = neaSessionCookieBindings.get(neaPlayerId);
-      neaSessionCookieBindings.set(neaPlayerId, sessionId);
+      const previousSessionId = cookieBindings.get(neaPlayerId);
+      cookieBindings.set(neaPlayerId, sessionId);
       if (previousSessionId && previousSessionId !== sessionId) {
-        sessions.evictSession?.(previousSessionId);
+        closeSessionSockets(previousSessionId);
+        sessions.evictSession(previousSessionId);
       }
     }
     let detached = false;
     socket.once("close", () => {
       if (detached) return;
       detached = true;
+      sessionSockets.delete(socket);
+      if (sessionSockets.size === 0) socketsBySession.delete(sessionId);
+      if (neaPlayerId && cookieBindings.get(neaPlayerId) === sessionId) cookieBindings.delete(neaPlayerId);
       sessions.detachSession(sessionId);
     });
   });
@@ -16692,11 +16715,11 @@ function createMudbTransport(httpServer, config, logger, issuedSessions, histori
     }
   });
 }
-function trackMudbTransportSessions(transport, issuedSessions, evictSession) {
+function trackMudbTransportSessions(transport, issuedSessions) {
   trackMuDbWebTransportSessions(transport, {
     attachSession: (sessionId) => issuedSessions.attachSocket(sessionId),
     detachSession: (sessionId) => issuedSessions.detachSocket(sessionId),
-    evictSession: (sessionId) => evictSession(sessionId)
+    evictSession: (sessionId) => issuedSessions.evict(sessionId)
   });
 }
 function closeMudbTransportClients(transport) {
@@ -16953,10 +16976,7 @@ var Box3Server = class {
     });
     try {
       await mudbReady;
-      trackMudbTransportSessions(transport, issuedSessions, (sessionId) => {
-        historicalProjectSessions.delete(sessionId);
-        historicalProjectInstance?.expireSession(sessionId);
-      });
+      trackMudbTransportSessions(transport, issuedSessions);
       await listen(httpServer, this.config.port, this.config.host);
       instance.start();
     } catch (error) {

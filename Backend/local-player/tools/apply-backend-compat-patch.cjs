@@ -6,7 +6,7 @@ const { patchPlayerPublicStateSource } = require("./patch-player-public-state-bu
 const BASE_SHA256 = "d35b3db79e93c03021fcb0ad62bf20d89e4bef470553bff17be6c9e3a61cc097";
 const COMPAT_SHA256 = "71bbbbf0492e54b5dc5ed6f228b0bae295179ebad54196ef7306dad808ec8d59";
 const TARGET_SHA256 = "59ba4641254e49782d111c32f7d94b7888cbbe5cdcdbe1ec8648f129fa4a89de";
-const FINAL_SHA256 = "11b16c9139d54e98568322586046c74f342722c39db6e328158b4021b65de8c5";
+const FINAL_SHA256 = "262e2ae034ace5e6e5bf05fe52effaf91cfc9e52ac375cac963874f81824fe67";
 
 function applyBackendCompatPatch(bundlePath) {
   const source = readFileSync(bundlePath, "utf8");

@@ -49,11 +49,20 @@ test("backend cookie eviction patch runs after the audited compatibility chain",
 
 test("audited backend cookie eviction patch persists same-cookie session eviction", () => {
   assert.match(cookiePatch, /neaPlayerIdFromRequest/);
-  assert.match(cookiePatch, /neaSessionCookieBindings/);
+  assert.match(cookiePatch, /const cookieBindings/);
+  assert.match(cookiePatch, /const socketsBySession/);
+  assert.match(cookiePatch, /closeSessionSockets\(previousSessionId\)/);
+  assert.match(cookiePatch, /issuedSessions\.evict\(sessionId\)/);
   assert.match(cookiePatch, /sessions\.evictSession/);
-  assert.match(cookiePatch, /expireSession\(sessionId\)/);
+  assert.match(cookiePatch, /evict\(sessionId\) \{/);
   assert.match(cookiePatch, /set-cookie/);
   assert.match(cookiePatch, /Max-Age=31536000/);
+});
+
+test("same-cookie eviction terminates the old MuDB client before releasing its session", () => {
+  assert.match(backend, /closeSessionSockets\(previousSessionId\);\s*sessions\.evictSession\(previousSessionId\);/);
+  assert.match(backend, /evictSession: \(sessionId\) => issuedSessions\.evict\(sessionId\)/);
+  assert.match(backend, /if \(neaPlayerId && cookieBindings\.get\(neaPlayerId\) === sessionId\) cookieBindings\.delete\(neaPlayerId\);/);
 });
 
 test("compatibility patch persists recovered UI, Dialog, chat, player-network, and runtime-entity projection behavior", () => {
