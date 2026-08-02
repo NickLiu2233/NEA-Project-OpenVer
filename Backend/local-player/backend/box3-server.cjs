@@ -9222,12 +9222,13 @@ async function handleRequest(request, response, dependencies) {
     }
     response.setHeader("cache-control", "no-store");
     try {
-      sendJson(response, 200, {
-        config: dependencies.issueLocalSession(
-          createSession.contentId,
-          localOriginForRequest(request, dependencies.localOrigin())
-        )
-      });
+      const sessionConfig = dependencies.issueLocalSession(
+        createSession.contentId,
+        localOriginForRequest(request, dependencies.localOrigin())
+      );
+      const neaPlayerId = neaPlayerIdFromRequest(request) ?? sessionConfig.sessionId;
+      response.setHeader("set-cookie", `neaPlayerId=${encodeURIComponent(neaPlayerId)}; Path=/; Max-Age=31536000; SameSite=Lax`);
+      sendJson(response, 200, { config: sessionConfig });
     } catch (error) {
       if (error instanceof HistoricalProjectAdmissionError) {
         sendJson(response, error.failure === "unknown-content-id" ? 404 : 409, {
@@ -16573,6 +16574,18 @@ function createMuDbWebTransport(options) {
   };
   return transport;
 }
+var neaSessionCookieBindings = /* @__PURE__ */ new Map();
+function neaPlayerIdFromRequest(request) {
+  const header = request?.headers?.cookie;
+  if (!header) return void 0;
+  const match = /(?:^|;\s*)neaPlayerId=([^;\s]+)/.exec(header);
+  if (!match) return void 0;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return void 0;
+  }
+}
 function trackMuDbWebTransportSessions(transport, sessions) {
   const webSocketServer = transport._wsServer;
   if (!webSocketServer) throw new Error("MuDB WebSocket server is not ready");
@@ -16582,6 +16595,14 @@ function trackMuDbWebTransportSessions(transport, sessions) {
       if (typeof socket.terminate === "function") socket.terminate();
       else socket.close?.();
       return;
+    }
+    const neaPlayerId = neaPlayerIdFromRequest(request);
+    if (neaPlayerId) {
+      const previousSessionId = neaSessionCookieBindings.get(neaPlayerId);
+      neaSessionCookieBindings.set(neaPlayerId, sessionId);
+      if (previousSessionId && previousSessionId !== sessionId) {
+        sessions.evictSession?.(previousSessionId);
+      }
     }
     let detached = false;
     socket.once("close", () => {
@@ -16670,10 +16691,11 @@ function createMudbTransport(httpServer, config, logger, issuedSessions, histori
     }
   });
 }
-function trackMudbTransportSessions(transport, issuedSessions) {
+function trackMudbTransportSessions(transport, issuedSessions, evictSession) {
   trackMuDbWebTransportSessions(transport, {
     attachSession: (sessionId) => issuedSessions.attachSocket(sessionId),
-    detachSession: (sessionId) => issuedSessions.detachSocket(sessionId)
+    detachSession: (sessionId) => issuedSessions.detachSocket(sessionId),
+    evictSession: (sessionId) => evictSession(sessionId)
   });
 }
 function closeMudbTransportClients(transport) {
@@ -16930,7 +16952,10 @@ var Box3Server = class {
     });
     try {
       await mudbReady;
-      trackMudbTransportSessions(transport, issuedSessions);
+      trackMudbTransportSessions(transport, issuedSessions, (sessionId) => {
+        historicalProjectSessions.delete(sessionId);
+        historicalProjectInstance?.expireSession(sessionId);
+      });
       await listen(httpServer, this.config.port, this.config.host);
       instance.start();
     } catch (error) {

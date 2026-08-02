@@ -74,6 +74,7 @@ Outcome: deterministic reports, sanitized fixtures, documented limitations, and 
 
 ## Next
 
+- [IMP-002] Evict a stale disconnected player when a new session joins with the same browser cookie (issue #121).
 - [IMP-001] Map core recovered `project.json` fields into the public import format.
 - [RT-003] Add bidirectional remote-channel conformance fixtures.
 - [RT-004] Add directed and broadcast server-to-client event coverage.
