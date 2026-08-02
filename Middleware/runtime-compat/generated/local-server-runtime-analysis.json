@@ -1,11 +1,11 @@
 {
   "format": "nea-local-server-runtime-analysis",
   "version": 1,
-  "generatedAt": "2026-08-02T05:17:32.375Z",
+  "generatedAt": "2026-08-02T06:05:08.493Z",
   "source": {
     "path": "Frontend/demo-map/src/runtime/script-runtime.mjs",
-    "bytes": 82311,
-    "sha256": "846ca401a0864cb8258014560c933b61129e84f1fabbae55ca70a059b6c02c44"
+    "bytes": 82330,
+    "sha256": "8307f76d6ecc9071173b090c14324eeb89380ee2891d765bf800e250943a8af5"
   },
   "eventTokenSource": {
     "path": "Frontend/demo-map/src/runtime/event-signal.mjs",
@@ -16539,6 +16539,166 @@
       ]
     },
     {
+      "localId": "server.RuntimeRaycastResult.hit",
+      "canonicalId": "server.GameRaycastResult.hit",
+      "status": "partial",
+      "gaps": [
+        "The local result preserves hit/no-hit state; the underlying entity intersection remains an AABB approximation."
+      ]
+    },
+    {
+      "localId": "server.RuntimeRaycastResult.hitEntity",
+      "canonicalId": "server.GameRaycastResult.hitEntity",
+      "status": "partial",
+      "gaps": [
+        "The local result exposes RuntimeEntity or RuntimePlayer for mapped entity hits; historical engine entity identity and oriented bounds behavior remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeRaycastResult.hitVoxel",
+      "canonicalId": "server.GameRaycastResult.hitVoxel",
+      "status": "partial",
+      "gaps": [
+        "The local result exposes the resolved voxel id; historical engine traversal edge cases remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeRaycastResult.origin",
+      "canonicalId": "server.GameRaycastResult.origin",
+      "status": "partial",
+      "gaps": [
+        "The local result preserves the requested origin through the local Vector3 compatibility type."
+      ]
+    },
+    {
+      "localId": "server.RuntimeRaycastResult.direction",
+      "canonicalId": "server.GameRaycastResult.direction",
+      "status": "partial",
+      "gaps": [
+        "The local result preserves the requested direction through the local Vector3 compatibility type."
+      ]
+    },
+    {
+      "localId": "server.RuntimeRaycastResult.distance",
+      "canonicalId": "server.GameRaycastResult.distance",
+      "status": "partial",
+      "gaps": [
+        "The local result exposes the nearest local intersection distance; historical oriented-body semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeRaycastResult.hitPosition",
+      "canonicalId": "server.GameRaycastResult.hitPosition",
+      "status": "partial",
+      "gaps": [
+        "The local result exposes the nearest local intersection position; historical oriented-body semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeRaycastResult.normal",
+      "canonicalId": "server.GameRaycastResult.normal",
+      "status": "partial",
+      "gaps": [
+        "The local result exposes the resolved local collision normal; historical engine normal conventions remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeRaycastResult.voxelIndex",
+      "canonicalId": "server.GameRaycastResult.voxelIndex",
+      "status": "partial",
+      "gaps": [
+        "The local result exposes the voxel index for voxel hits and preserves the documented no-hit zero vector."
+      ]
+    },
+    {
+      "localId": "server.RuntimeVoxelContactEvent.tick",
+      "canonicalId": "server.GameVoxelContactEvent.tick",
+      "status": "partial",
+      "gaps": [
+        "The local event preserves the dispatch tick; contact producer coverage remains limited to the local collider path."
+      ]
+    },
+    {
+      "localId": "server.RuntimeVoxelContactEvent.entity",
+      "canonicalId": "server.GameVoxelContactEvent.entity",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the contacting RuntimeEntity or RuntimePlayer; historical engine identity semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeVoxelContactEvent.x",
+      "canonicalId": "server.GameVoxelContactEvent.x",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the contacted voxel x coordinate from local collision resolution."
+      ]
+    },
+    {
+      "localId": "server.RuntimeVoxelContactEvent.y",
+      "canonicalId": "server.GameVoxelContactEvent.y",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the contacted voxel y coordinate from local collision resolution."
+      ]
+    },
+    {
+      "localId": "server.RuntimeVoxelContactEvent.z",
+      "canonicalId": "server.GameVoxelContactEvent.z",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the contacted voxel z coordinate from local collision resolution."
+      ]
+    },
+    {
+      "localId": "server.RuntimeVoxelContactEvent.voxel",
+      "canonicalId": "server.GameVoxelContactEvent.voxel",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the contacted voxel id; engine material and contact timing semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeVoxelContactEvent.axis",
+      "canonicalId": "server.GameVoxelContactEvent.axis",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the resolved local collision axis; historical solver orientation behavior remains unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeVoxelContactEvent.force",
+      "canonicalId": "server.GameVoxelContactEvent.force",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the impulse-derived force vector; per-contact solver force integration remains evidence-deferred."
+      ]
+    },
+    {
+      "localId": "server.RuntimeFluidContactEvent.tick",
+      "canonicalId": "server.GameFluidContactEvent.tick",
+      "status": "partial",
+      "gaps": [
+        "The local event preserves the dispatch tick; fluid producer coverage remains limited to local voxel classification."
+      ]
+    },
+    {
+      "localId": "server.RuntimeFluidContactEvent.entity",
+      "canonicalId": "server.GameFluidContactEvent.entity",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the entering RuntimeEntity or RuntimePlayer; historical engine identity semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.RuntimeFluidContactEvent.voxel",
+      "canonicalId": "server.GameFluidContactEvent.voxel",
+      "status": "partial",
+      "gaps": [
+        "The local event exposes the local fluid voxel id; historical fluid simulation semantics remain unrecovered."
+      ]
+    },
+    {
       "localId": "server.world.searchBox",
       "canonicalId": "server.GameWorld.searchBox",
       "status": "partial",
@@ -17266,6 +17426,70 @@
       ]
     },
     {
+      "localId": "server.GameHttpFetchResponse.ok",
+      "canonicalId": "server.GameHttpFetchResponse.ok",
+      "status": "partial",
+      "gaps": [
+        "The local response preserves the boolean status projection; historical response construction and network error semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.GameHttpFetchResponse.status",
+      "canonicalId": "server.GameHttpFetchResponse.status",
+      "status": "partial",
+      "gaps": [
+        "The local response preserves the numeric HTTP status; historical response construction and network error semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.GameHttpFetchResponse.statusText",
+      "canonicalId": "server.GameHttpFetchResponse.statusText",
+      "status": "partial",
+      "gaps": [
+        "The local response preserves the status text returned by the configured fetch implementation; historical normalization remains unrecovered."
+      ]
+    },
+    {
+      "localId": "server.GameHttpFetchResponse.headers",
+      "canonicalId": "server.GameHttpFetchResponse.headers",
+      "status": "partial",
+      "gaps": [
+        "The local response collects lowercase headers and repeated values; historical header ordering and wrapper semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.GameHttpFetchResponse.json",
+      "canonicalId": "server.GameHttpFetchResponse.json",
+      "status": "partial",
+      "gaps": [
+        "The local response decodes JSON from the bounded body buffer; historical parse errors and stream lifecycle semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.GameHttpFetchResponse.text",
+      "canonicalId": "server.GameHttpFetchResponse.text",
+      "status": "partial",
+      "gaps": [
+        "The local response decodes text from the bounded body buffer; historical encoding and stream lifecycle semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.GameHttpFetchResponse.arrayBuffer",
+      "canonicalId": "server.GameHttpFetchResponse.arrayBuffer",
+      "status": "partial",
+      "gaps": [
+        "The local response exposes bounded bytes as an ArrayBuffer; historical stream lifecycle semantics remain unrecovered."
+      ]
+    },
+    {
+      "localId": "server.GameHttpFetchResponse.close",
+      "canonicalId": "server.GameHttpFetchResponse.close",
+      "status": "partial",
+      "gaps": [
+        "The local response releases its buffered body; historical close idempotency and transport cancellation semantics remain unrecovered."
+      ]
+    },
+    {
       "localId": "server.GameStorage.getDataStorage",
       "canonicalId": "server.GameStorage.getDataStorage",
       "status": "partial",
@@ -17389,7 +17613,7 @@
   "summary": {
     "localEntries": 395,
     "compatibleAdapters": 43,
-    "partialAdapters": 111,
-    "extensions": 241
+    "partialAdapters": 139,
+    "extensions": 213
   }
 }
