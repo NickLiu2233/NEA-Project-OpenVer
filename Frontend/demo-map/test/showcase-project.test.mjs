@@ -47,6 +47,18 @@ test("showcase imports through the same transactional package path", async t => 
   assert.match(serverScript, /targetBinding: \"authoritative-mapped\"/);
   assert.match(serverScript, /world\.onEntityCreate/);
   assert.match(serverScript, /world\.onEntityDestroy/);
+  assert.match(serverScript, /world\.onPlayerLeave/);
+  assert.match(serverScript, /player lifecycle leave/);
+  assert.match(serverScript, /world\.onTick/);
+  assert.match(serverScript, /elapsedTimeMS/);
+  assert.match(serverScript, /skip/);
+  assert.match(serverScript, /server\.world\.onChat/);
+  assert.match(serverScript, /no recovered Player\/browser chat producer/);
+  assert.match(serverScript, /cloud\/distributed semantics remain evidence-deferred/);
+  assert.match(serverScript, /server\.world\.onEntityContact/);
+  assert.match(serverScript, /ContactBinding and active entity-contact aggregation are unavailable/);
+  assert.match(serverScript, /server\.world\.onPlayerPurchaseSuccess/);
+  assert.match(serverScript, /no recovered purchase-result producer/);
   assert.match(serverScript, /world\.onTakeDamage/);
   assert.match(serverScript, /world\.onDie/);
   assert.match(serverScript, /player\.damage\(10\)/);
