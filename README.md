@@ -8,16 +8,14 @@ NEA Project OpenVer is a source-available preservation and compatibility project
 
 | Goal | Start with |
 | --- | --- |
-| Understand the repository | [Repository layout](Docs/repository-layout.md) |
-| See current work and priorities | [Project progress](Docs/project-progress.md) |
-| Plan an evidence-backed contribution | [Development backlog](Docs/development-backlog.md) |
-| Understand architecture governance | [Architecture governance](Docs/architecture-governance.md) |
-| Understand the cleanup plan | [Repository cleanup plan](Docs/repository-cleanup-plan.md) |
-| Understand the runtime boundaries | [Runtime architecture](Docs/runtime-architecture.md) |
-| Work with the open version safely | [Open version policy](Docs/open-version.md) |
+| Understand the repository | [Repository layout](docs/repository-layout.md) |
+| See current work and priorities | [Project progress](docs/project-progress.md) |
+| Understand the cleanup plan | [Repository cleanup plan](docs/repository-cleanup-plan.md) |
+| Understand the runtime boundaries | [Runtime architecture](docs/runtime-architecture.md) |
+| Work with the open version safely | [Open version policy](docs/open-version.md) |
 | Contribute code or evidence | [Contributing](CONTRIBUTING.md) |
-| Work with AI agents efficiently | [AI project context](Docs/ai/project-context.md) |
-| Read Chinese project guidance | [中文文档](Docs/zh/README.md) |
+| Work with AI agents efficiently | [AI project context](docs/ai/project-context.md) |
+| Read Chinese project guidance | [中文文档](docs/zh/README.md) |
 | Inspect ABI coverage and known limits | `Middleware/runtime-compat/generated/gap-report.md` |
 | Run the importable demo | `Frontend/demo-map/` |
 
