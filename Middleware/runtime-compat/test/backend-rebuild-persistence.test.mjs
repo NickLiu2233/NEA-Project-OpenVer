@@ -8,12 +8,14 @@ const bundleToolUrl = new URL("../../../Backend/local-player/tools/bundle-backen
 const applyToolUrl = new URL("../../../Backend/local-player/tools/apply-backend-compat-patch.cjs", import.meta.url);
 const patchUrl = new URL("../../../Backend/local-player/tools/backend-compat.patch", import.meta.url);
 const soundPatchUrl = new URL("../../../Backend/local-player/tools/backend-sound-compat.patch", import.meta.url);
+const cookiePatchUrl = new URL("../../../Backend/local-player/tools/backend-cookie-eviction.patch", import.meta.url);
 
 const backend = await readFile(backendUrl, "utf8");
 const bundleTool = await readFile(bundleToolUrl, "utf8");
 const applyTool = await readFile(applyToolUrl, "utf8");
 const patch = await readFile(patchUrl, "utf8");
 const soundPatch = await readFile(soundPatchUrl, "utf8");
+const cookiePatch = await readFile(cookiePatchUrl, "utf8");
 
 test("backend rebuild applies the audited compatibility patch after generic RemoteChannel", () => {
   const genericIndex = bundleTool.indexOf("patchGenericRemoteChannelBundle(process.argv[4])");
@@ -32,9 +34,35 @@ test("audited backend sound patch persists the player.sound control chain", () =
 });
 
 test("audited backend target hash matches the checked-in runtime bundle", () => {
-  const expected = /const TARGET_SHA256 = "([0-9a-f]{64})";/.exec(applyTool)?.[1];
+  const expected = /const FINAL_SHA256 = "([0-9a-f]{64})";/.exec(applyTool)?.[1];
   assert.ok(expected);
   assert.equal(createHash("sha256").update(backend).digest("hex"), expected);
+});
+
+test("backend cookie eviction patch runs after the audited compatibility chain", () => {
+  const targetIndex = applyTool.indexOf("backend compatibility patch output");
+  const cookieIndex = applyTool.indexOf("backend-cookie-eviction.patch");
+  assert.notEqual(targetIndex, -1);
+  assert.ok(cookieIndex > targetIndex);
+  assert.match(applyTool, /backend cookie eviction patch output/);
+});
+
+test("audited backend cookie eviction patch persists same-cookie session eviction", () => {
+  assert.match(cookiePatch, /neaPlayerIdFromRequest/);
+  assert.match(cookiePatch, /const cookieBindings/);
+  assert.match(cookiePatch, /const socketsBySession/);
+  assert.match(cookiePatch, /closeSessionSockets\(previousSessionId\)/);
+  assert.match(cookiePatch, /issuedSessions\.evict\(sessionId\)/);
+  assert.match(cookiePatch, /sessions\.evictSession/);
+  assert.match(cookiePatch, /evict\(sessionId\) \{/);
+  assert.match(cookiePatch, /set-cookie/);
+  assert.match(cookiePatch, /Max-Age=31536000/);
+});
+
+test("same-cookie eviction terminates the old MuDB client before releasing its session", () => {
+  assert.match(backend, /closeSessionSockets\(previousSessionId\);\s*sessions\.evictSession\(previousSessionId\);/);
+  assert.match(backend, /evictSession: \(sessionId\) => issuedSessions\.evict\(sessionId\)/);
+  assert.match(backend, /if \(neaPlayerId && cookieBindings\.get\(neaPlayerId\) === sessionId\) cookieBindings\.delete\(neaPlayerId\);/);
 });
 
 test("compatibility patch persists recovered UI, Dialog, chat, player-network, and runtime-entity projection behavior", () => {
