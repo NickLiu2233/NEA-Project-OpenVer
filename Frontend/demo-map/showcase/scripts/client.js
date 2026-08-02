@@ -50,6 +50,8 @@ remoteChannel.events.on("client", event => {
     lastStatus = `${event.serverContract} / ${event.map.shape.join("x")}`;
     lines.push(`welcome: ${event.capabilities.length} capability records`);
   }
+  if (event?.type === "showcase:search-box") lines.push(`searchBox: ${event.entityCount} entities (${event.obb})`);
+  if (event?.type === "showcase:collision-filter") lines.push(`collisionFilter: ${event.filters.length} registered (${event.solver})`);
   if (event?.type === "showcase:physics") {
     lastPhysics = { gravity: event.gravity, airFriction: event.airFriction };
     lines.push(`physics applied: gravity=${event.gravity}, airFriction=${event.airFriction}`);
@@ -64,6 +66,10 @@ remoteChannel.events.on("client", event => {
   if (event?.type === "showcase:zone") lines.push(`zone: ${event.phase} ${event.zone}`);
   if (event?.type === "showcase:input") lines.push(`input: ${event.phase} ${event.button} pressed=${event.pressed}`);
   if (event?.type === "showcase:fluid") lines.push(`fluid: ${event.phase} voxel=${event.voxel} (${event.buoyancy})`);
+  if (event?.type === "showcase:interact") lines.push(`interact: ${event.scope} target=${event.targetId} (${event.targetBinding})`);
+  if (event?.type === "showcase:lifecycle") lines.push(`lifecycle: ${event.phase} entity=${event.entityId}`);
+  if (event?.type === "showcase:damage") lines.push(`damage: ${event.damage} type=${event.damageType} (${event.status})`);
+  if (event?.type === "showcase:death") lines.push(`death: type=${event.damageType} (${event.status})`);
   render();
 });
 

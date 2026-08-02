@@ -42,4 +42,17 @@ test("showcase imports through the same transactional package path", async t => 
   assert.match(serverScript, /world\.onFluidEnter/);
   assert.match(serverScript, /world\.onFluidLeave/);
   assert.match(serverScript, /buoyancy: \"evidence-deferred\"/);
+  assert.match(serverScript, /lab\.onInteract/);
+  assert.match(serverScript, /world\.onInteract/);
+  assert.match(serverScript, /targetBinding: \"authoritative-mapped\"/);
+  assert.match(serverScript, /world\.onEntityCreate/);
+  assert.match(serverScript, /world\.onEntityDestroy/);
+  assert.match(serverScript, /world\.onTakeDamage/);
+  assert.match(serverScript, /world\.onDie/);
+  assert.match(serverScript, /player\.damage\(10\)/);
+  assert.match(serverScript, /world\.searchBox/);
+  assert.match(serverScript, /obb: \"evidence-deferred\"/);
+  assert.match(serverScript, /world\.addCollisionFilter/);
+  assert.match(serverScript, /world\.collisionFilters/);
+  assert.match(serverScript, /solver: \"evidence-deferred\"/);
 });

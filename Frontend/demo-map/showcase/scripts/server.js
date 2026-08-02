@@ -62,6 +62,10 @@ world.onPlayerJoin(({ player }) => {
     physics: DEFAULT_PHYSICS,
     capabilities: capabilityMatrix,
   });
+  const labEntities = world.searchBox({ lo: [20, 2, 20], hi: [236, 10, 236] });
+  send(player, { type: "showcase:search-box", entityCount: labEntities.length, entityIds: labEntities.map(entity => entity.id), status: "partial", obb: "evidence-deferred" });
+  world.addCollisionFilter("player", ".api-lab");
+  send(player, { type: "showcase:collision-filter", filters: world.collisionFilters(), status: "partial", solver: "evidence-deferred" });
   sendPhysics(player);
 });
 
@@ -74,6 +78,7 @@ world.onVoxelContact(({ player, voxel, axis }) => {
 world.onTriggerEnter(({ player, trigger }) => {
   const status = trigger.tags.includes("checkpoint") ? "verified" : "partial";
   send(player, { type: "showcase:trigger", phase: "enter", triggerId: trigger.id, status });
+  if (trigger.tags.includes("hazard")) player.damage(10);
 });
 
 world.onTriggerLeave(({ player, trigger }) => {
@@ -96,7 +101,34 @@ for (const lab of world.querySelectorAll(".api-lab")) {
   lab.onClick(({ clicker, entity, button }) => {
     send(clicker, { type: "showcase:click", scope: "entity", targetId: entity.id, button, status: "verified" });
   });
+  lab.onInteract(({ entity, targetEntity }) => {
+    send(entity, { type: "showcase:interact", scope: "entity", targetId: targetEntity.id, status: "partial", targetBinding: "authoritative-mapped" });
+  });
 }
+
+world.onInteract(({ entity, targetEntity }) => {
+  send(entity, { type: "showcase:interact", scope: "world", targetId: targetEntity.id, status: "partial", targetBinding: "authoritative-mapped" });
+});
+
+world.onEntityCreate(({ entity }) => {
+  if (!entity.isPlayer) return;
+  send(entity, { type: "showcase:lifecycle", phase: "create", entityId: entity.id, status: "verified" });
+});
+
+world.onEntityDestroy(({ entity }) => {
+  if (!entity.isPlayer) return;
+  console.log(`[NEA Showcase] player lifecycle destroy entity=${entity.id}`);
+});
+
+world.onTakeDamage(({ entity, attacker, damage, damageType }) => {
+  if (!entity.isPlayer) return;
+  send(entity, { type: "showcase:damage", damage, damageType, attackerId: attacker?.id ?? null, status: "partial" });
+});
+
+world.onDie(({ entity, attacker, damageType }) => {
+  if (!entity.isPlayer) return;
+  send(entity, { type: "showcase:death", damageType, attackerId: attacker?.id ?? null, status: "partial" });
+});
 
 const coreZone = world.addZone({
   selector: "player",
